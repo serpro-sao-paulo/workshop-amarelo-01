@@ -103,6 +103,21 @@ public class BeneficiarioService implements BeneficiarioQuery {
 
     @Override
     @Transactional(readOnly = true)
+    public Optional<BeneficiarioElegibilidadeView> dadosElegibilidade(UUID beneficiarioId) {
+        return repository.findById(beneficiarioId)
+                .map(b -> new BeneficiarioElegibilidadeView(b.getSituacao(), b.getDataNascimento()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<BeneficiarioFolhaView> ativosOrdenadosPorCpf() {
+        return repository.findBySituacaoOrderByCpfAsc(SituacaoBeneficiario.ATIVO).stream()
+                .map(b -> new BeneficiarioFolhaView(b.getId(), b.getCpf()))
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public boolean existePorId(UUID beneficiarioId) {
         return repository.existsById(beneficiarioId);
     }

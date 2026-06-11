@@ -14,5 +14,10 @@ public interface BeneficiarioQuery {
 
     Optional<SituacaoBeneficiario> situacaoPorId(UUID beneficiarioId);
 
+    Optional<BeneficiarioElegibilidadeView> dadosElegibilidade(UUID beneficiarioId);
+
+    /** Active beneficiaries ordered ascending by CPF for the monthly payroll (REQ-025/026). */
+    java.util.List<BeneficiarioFolhaView> ativosOrdenadosPorCpf();
+
     boolean existePorId(UUID beneficiarioId);
 }

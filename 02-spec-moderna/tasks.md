@@ -87,8 +87,8 @@ description: "Task list — Modernização SIFAP (Modular Monolith)"
 - [X] T023 [US1] `BeneficiarioService`: validação obrigatórios (REQ-001/004/005), CPF inválido (REQ-003), CPF duplicado (REQ-007), status inicial ativo (REQ-006), limite de dependentes (REQ-010) em `backend/src/main/java/br/gov/sifap/beneficiario/application/BeneficiarioService.java`
 - [X] T024 [US1] Porta `BeneficiarioQuery` (consulta síncrona para outros contextos) em `backend/src/main/java/br/gov/sifap/beneficiario/application/BeneficiarioQuery.java`
 - [X] T025 [US1] Controller REST `/api/v1/beneficiarios` e `/{id}/dependentes` com `@Valid` (REQ-033) em `backend/src/main/java/br/gov/sifap/beneficiario/api/BeneficiarioController.java`
-- [ ] T026 [US1] Publicar domain event + chamar `AuditLog.record()` em criação/alteração em `backend/src/main/java/br/gov/sifap/beneficiario/application/BeneficiarioService.java`
-- [ ] T027 [P] [US1] Telas de cadastro/consulta de beneficiários em `frontend/src/app/beneficiarios/`
+- [X] T026 [US1] Publicar domain event + chamar `AuditLog.record()` em criação/alteração em `backend/src/main/java/br/gov/sifap/beneficiario/application/BeneficiarioService.java`
+- [X] T027 [P] [US1] Telas de cadastro/consulta de beneficiários em `frontend/src/app/beneficiarios/`
 
 **Checkpoint**: US1 funcional e testável de forma independente (MVP).
 
@@ -102,18 +102,18 @@ description: "Task list — Modernização SIFAP (Modular Monolith)"
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T028 [P] [US2] Teste de contrato `/api/v1/programas` e `/api/v1/elegibilidade` em `backend/src/test/java/br/gov/sifap/programa/api/ProgramaContractTest.java`
-- [ ] T029 [P] [US2] Testes unitários das regras de elegibilidade (REQ-013/014/015/016/017) em `backend/src/test/java/br/gov/sifap/programa/ElegibilidadeServiceTest.java`
+- [X] T028 [P] [US2] Teste de contrato `/api/v1/programas` e `/api/v1/elegibilidade` em `backend/src/test/java/br/gov/sifap/programa/api/ProgramaContractTest.java`
+- [X] T029 [P] [US2] Testes unitários das regras de elegibilidade (REQ-013/014/015/016/017) em `backend/src/test/java/br/gov/sifap/programa/ElegibilidadeServiceTest.java`
 
 ### Implementation for User Story 2
 
-- [ ] T030 [P] [US2] Migration Flyway tabela `programa_social` em `backend/src/main/resources/db/migration/V3__programa_social.sql`
-- [ ] T031 [P] [US2] Entidade `ProgramaSocial` + embeddable de critérios (faixa etária REQ-015, teto renda REQ-016, tipo REQ-017) em `backend/src/main/java/br/gov/sifap/programa/domain/`
-- [ ] T032 [US2] `ProgramaSocialRepository` em `backend/src/main/java/br/gov/sifap/programa/infrastructure/`
-- [ ] T033 [US2] `ProgramaSocialService`: status ativo ao incluir (REQ-012) em `backend/src/main/java/br/gov/sifap/programa/application/ProgramaSocialService.java`
-- [ ] T034 [US2] Porta `ElegibilidadeService.avaliar()`: programa ativo (REQ-013), status do beneficiário via `BeneficiarioQuery` (REQ-014), faixa etária (REQ-015), teto de renda (REQ-016), regras por tipo (REQ-017) em `backend/src/main/java/br/gov/sifap/programa/application/ElegibilidadeService.java`
-- [ ] T035 [US2] Controllers REST `/api/v1/programas` e `/api/v1/elegibilidade` (REQ-033) em `backend/src/main/java/br/gov/sifap/programa/api/`
-- [ ] T036 [P] [US2] Telas de programas e simulação de elegibilidade em `frontend/src/app/programas/`
+- [X] T030 [P] [US2] Migration Flyway tabela `programa_social` em `backend/src/main/resources/db/migration/V3__programa_social.sql`
+- [X] T031 [P] [US2] Entidade `ProgramaSocial` + embeddable de critérios (faixa etária REQ-015, teto renda REQ-016, tipo REQ-017) em `backend/src/main/java/br/gov/sifap/programa/domain/`
+- [X] T032 [US2] `ProgramaSocialRepository` em `backend/src/main/java/br/gov/sifap/programa/infrastructure/`
+- [X] T033 [US2] `ProgramaSocialService`: status ativo ao incluir (REQ-012) em `backend/src/main/java/br/gov/sifap/programa/application/ProgramaSocialService.java`
+- [X] T034 [US2] Porta `ElegibilidadeService.avaliar()`: programa ativo (REQ-013), status do beneficiário via `BeneficiarioQuery` (REQ-014), faixa etária (REQ-015), teto de renda (REQ-016), regras por tipo (REQ-017) em `backend/src/main/java/br/gov/sifap/programa/application/ElegibilidadeService.java`
+- [X] T035 [US2] Controllers REST `/api/v1/programas` e `/api/v1/elegibilidade` (REQ-033) em `backend/src/main/java/br/gov/sifap/programa/api/`
+- [X] T036 [P] [US2] Telas de programas e simulação de elegibilidade em `frontend/src/app/programas/`
 
 **Checkpoint**: US1 e US2 funcionam de forma independente.
 
@@ -129,25 +129,25 @@ description: "Task list — Modernização SIFAP (Modular Monolith)"
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T037 [P] [US3] Teste de contrato `/api/v1/pagamentos` (folha, conciliação, consulta) em `backend/src/test/java/br/gov/sifap/pagamento/api/PagamentoContractTest.java`
-- [ ] T038 [P] [US3] Testes unitários de desconto: teto 30% (REQ-021/023) e judicial sem teto (REQ-022) em `backend/src/test/java/br/gov/sifap/pagamento/DescontoServiceTest.java`
-- [ ] T039 [P] [US3] Teste de integração da folha ordenada por CPF e apenas ativos (REQ-018/025/026) em `backend/src/test/java/br/gov/sifap/pagamento/FolhaIntegrationTest.java`
-- [ ] T040 [P] [US3] Teste de integração da conciliação CNAB: status por código de retorno e divergência (REQ-027/028) em `backend/src/test/java/br/gov/sifap/pagamento/ConciliacaoIntegrationTest.java`
+- [X] T037 [P] [US3] Teste de contrato `/api/v1/pagamentos` (folha, conciliação, consulta) em `backend/src/test/java/br/gov/sifap/pagamento/api/PagamentoContractTest.java`
+- [X] T038 [P] [US3] Testes unitários de desconto: teto 30% (REQ-021/023) e judicial sem teto (REQ-022) em `backend/src/test/java/br/gov/sifap/pagamento/DescontoServiceTest.java`
+- [X] T039 [P] [US3] Teste de integração da folha ordenada por CPF e apenas ativos (REQ-018/025/026) em `backend/src/test/java/br/gov/sifap/pagamento/FolhaIntegrationTest.java`
+- [X] T040 [P] [US3] Teste de integração da conciliação CNAB: status por código de retorno e divergência (REQ-027/028) em `backend/src/test/java/br/gov/sifap/pagamento/ConciliacaoIntegrationTest.java`
 
 ### Implementation for User Story 3
 
-- [ ] T041 [P] [US3] Migration Flyway tabelas `pagamento` e `desconto` (ADR-002) em `backend/src/main/resources/db/migration/V4__pagamento.sql`
-- [ ] T042 [P] [US3] Entidade `Pagamento` + enums `StatusPagamento`/`TipoPagamento` (domínio REQ-030) em `backend/src/main/java/br/gov/sifap/pagamento/domain/`
-- [ ] T043 [P] [US3] Entidade `Desconto` + enum `TipoDesconto` (ordinário/judicial) em `backend/src/main/java/br/gov/sifap/pagamento/domain/`
-- [ ] T044 [US3] Interface stateless `CalculoBeneficio` (ADR-001) — ⏸️ **corpo da fórmula DEFERIDO** (D-01/OQ-002) em `backend/src/main/java/br/gov/sifap/calculo/domain/CalculoBeneficio.java`
-- [ ] T045 [US3] `DescontoService`: teto de 30% do bruto (REQ-021/023), judicial sem teto (REQ-022) em `backend/src/main/java/br/gov/sifap/calculo/application/DescontoService.java`
-- [ ] T046 [US3] ⏸️ **DEFERIDO** — correção monetária IPCA (REQ-020/MYS-014) e abono natalino/13º (REQ-024/D-02): criar stubs com `NEEDS CLARIFICATION` em `backend/src/main/java/br/gov/sifap/calculo/application/`
-- [ ] T047 [US3] `PagamentoRepository` em `backend/src/main/java/br/gov/sifap/pagamento/infrastructure/`
-- [ ] T048 [US3] `FolhaService`: ordenação por CPF (REQ-025), apenas beneficiário ativo (REQ-018/026), orquestra Cálculo stateless e é o único escritor de `PAGAMENTO` (ADR-001) em `backend/src/main/java/br/gov/sifap/pagamento/application/FolhaService.java`
-- [ ] T049 [US3] `ConciliacaoService`: parser CNAB, atualização de status por código de retorno (REQ-027), detecção de divergência (REQ-028), auditoria na conciliação (REQ-029) em `backend/src/main/java/br/gov/sifap/pagamento/application/ConciliacaoService.java`
-- [ ] T050 [US3] Controller REST `/api/v1/pagamentos` (`/folha`, `/conciliacao`, consulta) (REQ-033) em `backend/src/main/java/br/gov/sifap/pagamento/api/PagamentoController.java`
+- [X] T041 [P] [US3] Migration Flyway tabelas `pagamento` e `desconto` (ADR-002) em `backend/src/main/resources/db/migration/V4__pagamento.sql`
+- [X] T042 [P] [US3] Entidade `Pagamento` + enums `StatusPagamento`/`TipoPagamento` (domínio REQ-030) em `backend/src/main/java/br/gov/sifap/pagamento/domain/`
+- [X] T043 [P] [US3] Entidade `Desconto` + enum `TipoDesconto` (ordinário/judicial) em `backend/src/main/java/br/gov/sifap/pagamento/domain/`
+- [X] T044 [US3] Interface stateless `CalculoBeneficio` (ADR-001) — ⏸️ **corpo da fórmula DEFERIDO** (D-01/OQ-002) em `backend/src/main/java/br/gov/sifap/calculo/domain/CalculoBeneficio.java`
+- [X] T045 [US3] `DescontoService`: teto de 30% do bruto (REQ-021/023), judicial sem teto (REQ-022) em `backend/src/main/java/br/gov/sifap/calculo/application/DescontoService.java`
+- [X] T046 [US3] ⏸️ **DEFERIDO** — correção monetária IPCA (REQ-020/MYS-014) e abono natalino/13º (REQ-024/D-02): criar stubs com `NEEDS CLARIFICATION` em `backend/src/main/java/br/gov/sifap/calculo/application/`
+- [X] T047 [US3] `PagamentoRepository` em `backend/src/main/java/br/gov/sifap/pagamento/infrastructure/`
+- [X] T048 [US3] `FolhaService`: ordenação por CPF (REQ-025), apenas beneficiário ativo (REQ-018/026), orquestra Cálculo stateless e é o único escritor de `PAGAMENTO` (ADR-001) em `backend/src/main/java/br/gov/sifap/pagamento/application/FolhaService.java`
+- [X] T049 [US3] `ConciliacaoService`: parser CNAB, atualização de status por código de retorno (REQ-027), detecção de divergência (REQ-028), auditoria na conciliação (REQ-029) em `backend/src/main/java/br/gov/sifap/pagamento/application/ConciliacaoService.java`
+- [X] T050 [US3] Controller REST `/api/v1/pagamentos` (`/folha`, `/conciliacao`, consulta) (REQ-033) em `backend/src/main/java/br/gov/sifap/pagamento/api/PagamentoController.java`
 - [ ] T051 [US3] Publicar domain events de pagamento/conciliação → `AuditLog` com idempotência/outbox (ADR-003/004) em `backend/src/main/java/br/gov/sifap/pagamento/application/`
-- [ ] T052 [P] [US3] Telas de consulta de pagamentos e geração de folha em `frontend/src/app/pagamentos/`
+- [X] T052 [P] [US3] Telas de consulta de pagamentos e geração de folha em `frontend/src/app/pagamentos/`
 
 **Checkpoint**: US1, US2 e US3 funcionam de forma independente (cálculo de valor permanece deferido).
 
@@ -161,17 +161,17 @@ description: "Task list — Modernização SIFAP (Modular Monolith)"
 
 ### Tests for User Story 4 ⚠️
 
-- [ ] T053 [P] [US4] Teste de contrato `/api/v1/relatorios` e `/api/v1/auditoria` em `backend/src/test/java/br/gov/sifap/auditoria/api/AuditoriaContractTest.java`
-- [ ] T054 [P] [US4] Teste de integração auditoria append-only via porta `AuditLog` (REQ-032, ADR-003) em `backend/src/test/java/br/gov/sifap/auditoria/AuditLogIntegrationTest.java`
+- [X] T053 [P] [US4] Teste de contrato `/api/v1/relatorios` e `/api/v1/auditoria` em `backend/src/test/java/br/gov/sifap/auditoria/api/AuditoriaContractTest.java`
+- [X] T054 [P] [US4] Teste de integração auditoria append-only via porta `AuditLog` (REQ-032, ADR-003) em `backend/src/test/java/br/gov/sifap/auditoria/AuditLogIntegrationTest.java`
 
 ### Implementation for User Story 4
 
-- [ ] T055 [P] [US4] Migration Flyway tabela `evento_auditoria` (append-only) em `backend/src/main/resources/db/migration/V5__auditoria.sql`
-- [ ] T056 [P] [US4] Entidade `EventoAuditoria` + enum `AcaoAuditoria` (REQ-032) em `backend/src/main/java/br/gov/sifap/auditoria/domain/`
-- [ ] T057 [US4] Implementar porta `AuditLog.record()` (único escritor de `AUDITORIA`, ADR-003) em `backend/src/main/java/br/gov/sifap/auditoria/application/AuditLog.java`
-- [ ] T058 [US4] Read models / serviços de relatório: rótulos de status de pagamento (REQ-030) e de beneficiário (REQ-031) em `backend/src/main/java/br/gov/sifap/auditoria/application/RelatorioService.java`
-- [ ] T059 [US4] Controllers REST `/api/v1/relatorios`, `/api/v1/auditoria`, `/api/v1/consultas` (REQ-033) em `backend/src/main/java/br/gov/sifap/auditoria/api/`
-- [ ] T060 [P] [US4] Telas de relatórios e trilha de auditoria em `frontend/src/app/relatorios/`
+- [X] T055 [P] [US4] Migration Flyway tabela `evento_auditoria` (append-only) em `backend/src/main/resources/db/migration/V5__auditoria.sql`
+- [X] T056 [P] [US4] Entidade `EventoAuditoria` + enum `AcaoAuditoria` (REQ-032) em `backend/src/main/java/br/gov/sifap/auditoria/domain/`
+- [X] T057 [US4] Implementar porta `AuditLog.record()` (único escritor de `AUDITORIA`, ADR-003) em `backend/src/main/java/br/gov/sifap/auditoria/application/AuditLog.java`
+- [X] T058 [US4] Read models / serviços de relatório: rótulos de status de pagamento (REQ-030) e de beneficiário (REQ-031) em `backend/src/main/java/br/gov/sifap/auditoria/application/RelatorioService.java`
+- [X] T059 [US4] Controllers REST `/api/v1/relatorios`, `/api/v1/auditoria`, `/api/v1/consultas` (REQ-033) em `backend/src/main/java/br/gov/sifap/auditoria/api/`
+- [X] T060 [P] [US4] Telas de relatórios e trilha de auditoria em `frontend/src/app/relatorios/`
 
 **Checkpoint**: todas as user stories funcionam de forma independente.
 
@@ -184,7 +184,7 @@ description: "Task list — Modernização SIFAP (Modular Monolith)"
 - [ ] T063 ⏸️ **DEFERIDO** — harness de testes de equivalência Java vs legado Natural (bloqueado em D-01..D-03) em `backend/src/test/java/br/gov/sifap/equivalencia/`
 - [ ] T064 [P] Hardening de segurança: CORS explícito; ⏸️ testes de autorização das exceções legadas (ADR-005, OQ-006/007/008 — spec por exceção deferida)
 - [ ] T065 Rodar validação do `quickstart.md` (cenários C1..C10)
-- [ ] T066 [P] Testes unitários de frontend (Vitest + Testing Library) em `frontend/src/`
+- [X] T066 [P] Testes unitários de frontend (Vitest + Testing Library) em `frontend/src/`
 
 ---
 
