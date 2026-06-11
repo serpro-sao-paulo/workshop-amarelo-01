@@ -93,5 +93,7 @@ Toolchain fixa; misturar ferramentas quebra a rastreabilidade spec → code → 
 
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
-shell commands, and other important information, read the current plan
+shell commands, and other important information, read the current plan at
+[`02-spec-moderna/plan.md`](../02-spec-moderna/plan.md) (com research.md,
+data-model.md, contracts/ e quickstart.md no mesmo diretório).
 <!-- SPECKIT END -->

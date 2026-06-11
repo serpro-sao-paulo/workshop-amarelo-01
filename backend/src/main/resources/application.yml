@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: sifap-backend
+  datasource:
+    url: ${SIFAP_DB_URL:jdbc:postgresql://localhost:5432/sifap}
+    username: ${SIFAP_DB_USER:sifap}
+    password: ${SIFAP_DB_PASSWORD:sifap}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Configurado por ambiente (ADR-005). Sem segredos no código.
+          issuer-uri: ${SIFAP_OAUTH_ISSUER_URI:}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+# CORS explícito (sem wildcard em produção) — definido por ambiente.
+sifap:
+  cors:
+    allowed-origins: ${SIFAP_CORS_ORIGINS:http://localhost:3000}
+
+logging:
+  level:
+    org.hibernate.SQL: INFO

@@ -1,0 +1,64 @@
+%% Mapa de Dependências — SIFAP legado
+%% Escopo: 01-arqueologia/legado-sifap/natural-programs/ (15 programas, 4 DDMs) — recursivo
+%% Gerado por /map-dependencies em 2026-06-10. Toda aresta rastreada a arquivo:linha (ver dependency-map.md).
+%% NÃO há arestas CALLNAT/INCLUDE no código materializado — só acesso a dados (READ/FIND/STORE/UPDATE).
+flowchart LR
+    classDef prog fill:#0f172a,stroke:#334155,color:#e2e8f0;
+    classDef data fill:#0f172a,stroke:#334155,color:#e2e8f0;
+    classDef ext fill:#0f172a,stroke:#334155,color:#e2e8f0,stroke-dasharray: 4 3;
+    classDef orphan fill:#0f172a,stroke:#b45309,color:#e2e8f0;
+
+    %% Programas (retângulos)
+    CADBENEF[CADBENEF.NSN]
+    CADDEPEND[CADDEPEND.NSN]
+    CADPROG[CADPROG.NSN]
+    CALCBENF[CALCBENF.NSN]
+    CALCCORR[CALCCORR.NSN]
+    CALCDSCT[CALCDSCT.NSN]
+    VALELEG[VALELEG.NSN]
+    VALBENEF[VALBENEF.NSN]
+    VALDOCS[VALDOCS.NSN]
+    CONSBENF[CONSBENF.NSN]
+    RELPGT[RELPGT.NSN]
+    RELAUDIT[RELAUDIT.NSN]
+    BATCHPGT[BATCHPGT.NSN]
+    BATCHCON[BATCHCON.NSN]
+    BATCHREL[BATCHREL.NSN]
+
+    %% Dados (cilindros)
+    BENEF[(BENEFICIARIO)]
+    PROG[(PROGRAMA-SOCIAL)]
+    PAG[(PAGAMENTO)]
+    AUD[(AUDITORIA)]
+    CNAB[(WORK FILE 1 - CNAB 240<br/>arquivo externo)]
+
+    %% Arestas programa-para-dados (label = operacao)
+    CADBENEF -->|FIND/STORE/UPDATE| BENEF
+    CADDEPEND -->|FIND/UPDATE| BENEF
+    CADPROG -->|FIND/STORE| PROG
+    CALCBENF -->|FIND| BENEF
+    CALCBENF -->|FIND| PROG
+    CALCBENF -->|STORE| PAG
+    CALCCORR -->|READ/UPDATE| PAG
+    CALCDSCT -->|FIND/UPDATE| PAG
+    CALCDSCT -->|FIND| BENEF
+    VALELEG -->|FIND| BENEF
+    VALELEG -->|FIND| PROG
+    CONSBENF -->|FIND| BENEF
+    CONSBENF -->|READ| PAG
+    RELPGT -->|READ| PAG
+    RELPGT -->|FIND| BENEF
+    BATCHREL -->|READ| PAG
+    BATCHREL -->|FIND| BENEF
+    BATCHPGT -->|READ| BENEF
+    BATCHPGT -->|READ/FIND/STORE| PAG
+    BATCHPGT -->|FIND| PROG
+    BATCHCON -->|FIND/UPDATE| PAG
+    BATCHCON -->|READ/STORE| AUD
+    BATCHCON -->|READ| CNAB
+    RELAUDIT -->|READ| AUD
+
+    class CADBENEF,CADDEPEND,CADPROG,CALCBENF,CALCCORR,CALCDSCT,VALELEG,CONSBENF,RELPGT,RELAUDIT,BATCHPGT,BATCHCON,BATCHREL prog;
+    class VALBENEF,VALDOCS orphan;
+    class BENEF,PROG,PAG,AUD data;
+    class CNAB ext;

@@ -1,0 +1,314 @@
+openapi: 3.1.0
+info:
+  title: SIFAP API
+  version: "1.0.0"
+  description: >
+    Contrato REST /api/v1 da modernização do SIFAP (Modular Monolith).
+    Fórmulas financeiras nucleares estão deferidas (ver research.md D-01..D-03):
+    endpoints de geração de folha retornam estrutura, mas valores só são
+    confiáveis após resolução das Open Questions OQ-002/003/004.
+servers:
+  - url: /api/v1
+security:
+  - bearerAuth: []
+
+tags:
+  - name: beneficiarios
+    description: Cadastro de Beneficiários (REQ-001..011)
+  - name: programas
+    description: Programas Sociais e Elegibilidade (REQ-012..017)
+  - name: pagamentos
+    description: Processamento de Pagamentos (REQ-025..029)
+  - name: relatorios
+    description: Relatórios e Auditoria (REQ-030..032)
+
+paths:
+  /beneficiarios:
+    get:
+      tags: [beneficiarios]
+      summary: Lista beneficiários (CPF mascarado)
+      parameters:
+        - { name: page, in: query, schema: { type: integer, default: 0 } }
+        - { name: size, in: query, schema: { type: integer, default: 20 } }
+      responses:
+        "200":
+          description: Página de beneficiários
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BeneficiarioPage" }
+    post:
+      tags: [beneficiarios]
+      summary: Cadastra beneficiário (REQ-001..003)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/BeneficiarioInput" }
+      responses:
+        "201":
+          description: Criado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Beneficiario" }
+        "409": { $ref: "#/components/responses/Conflito" }
+        "400": { $ref: "#/components/responses/Validacao" }
+
+  /beneficiarios/{id}:
+    get:
+      tags: [beneficiarios]
+      summary: Detalha beneficiário
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses:
+        "200":
+          description: Beneficiário
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Beneficiario" }
+        "404": { $ref: "#/components/responses/NaoEncontrado" }
+    put:
+      tags: [beneficiarios]
+      summary: Atualiza beneficiário
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/BeneficiarioInput" }
+      responses:
+        "200": { description: Atualizado }
+        "404": { $ref: "#/components/responses/NaoEncontrado" }
+
+  /beneficiarios/{id}/dependentes:
+    get:
+      tags: [beneficiarios]
+      summary: Lista dependentes (REQ-009..011)
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses:
+        "200":
+          description: Dependentes
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Dependente" }
+
+  /programas:
+    get:
+      tags: [programas]
+      summary: Lista programas sociais
+      responses:
+        "200":
+          description: Programas
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/ProgramaSocial" }
+
+  /elegibilidade:
+    post:
+      tags: [programas]
+      summary: Avalia elegibilidade de um beneficiário a um programa (REQ-012..016)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [beneficiarioId, programaId]
+              properties:
+                beneficiarioId: { type: string, format: uuid }
+                programaId: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Resultado da avaliação
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ResultadoElegibilidade" }
+
+  /pagamentos:
+    get:
+      tags: [pagamentos]
+      summary: Consulta pagamentos por competência/beneficiário
+      parameters:
+        - { name: competencia, in: query, schema: { type: string, example: "2026-06" } }
+        - { name: beneficiarioId, in: query, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Pagamentos
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Pagamento" }
+
+  /pagamentos/folha:
+    post:
+      tags: [pagamentos]
+      summary: >
+        Gera folha de pagamento da competência, ordenada por CPF (REQ-025).
+        ATENÇÃO: cálculo de valor deferido (OQ-002/003/004) — não ligar até confirmação.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [competencia]
+              properties:
+                competencia: { type: string, example: "2026-06" }
+                programaId: { type: string, format: uuid }
+      responses:
+        "202": { description: Geração de folha aceita (processamento assíncrono) }
+
+  /pagamentos/conciliacao:
+    post:
+      tags: [pagamentos]
+      summary: Concilia retorno bancário (CNAB) e atualiza status (REQ-027/028)
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema: { type: string, format: binary }
+      responses:
+        "202": { description: Conciliação aceita }
+
+  /relatorios/pagamentos:
+    get:
+      tags: [relatorios]
+      summary: Relatório de pagamentos (REQ-030/031)
+      parameters:
+        - { name: competencia, in: query, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Relatório }
+
+  /auditoria:
+    get:
+      tags: [relatorios]
+      summary: Consulta trilha de auditoria (append-only, REQ-032)
+      parameters:
+        - { name: entidade, in: query, schema: { type: string } }
+        - { name: entidadeId, in: query, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Eventos de auditoria
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/EventoAuditoria" }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+
+  responses:
+    Conflito:
+      description: Conflito (ex.: CPF já cadastrado)
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Erro" }
+    Validacao:
+      description: Erro de validação (Bean Validation)
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Erro" }
+    NaoEncontrado:
+      description: Recurso não encontrado
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Erro" }
+
+  schemas:
+    Erro:
+      type: object
+      properties:
+        codigo: { type: string }
+        mensagem: { type: string }
+        detalhes:
+          type: array
+          items: { type: string }
+
+    BeneficiarioInput:
+      type: object
+      required: [cpf, nome, dataNascimento]
+      properties:
+        cpf: { type: string, description: "CPF válido (mod-11) — REQ-001/002" }
+        nome: { type: string }
+        dataNascimento: { type: string, format: date }
+        regiao: { type: string }
+
+    Beneficiario:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        cpf: { type: string, description: "Mascarado em listagens (LGPD)" }
+        nome: { type: string }
+        dataNascimento: { type: string, format: date }
+        regiao: { type: string }
+        situacao: { type: string }
+
+    BeneficiarioPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items: { $ref: "#/components/schemas/Beneficiario" }
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+
+    Dependente:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        nome: { type: string }
+        dataNascimento: { type: string, format: date }
+        parentesco: { type: string }
+
+    ProgramaSocial:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        codigo: { type: string }
+        nome: { type: string }
+        ativo: { type: boolean }
+
+    ResultadoElegibilidade:
+      type: object
+      properties:
+        elegivel: { type: boolean }
+        motivos:
+          type: array
+          items: { type: string }
+
+    Pagamento:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        beneficiarioId: { type: string, format: uuid }
+        programaId: { type: string, format: uuid }
+        competencia: { type: string, example: "2026-06" }
+        valorLiquido: { type: string, description: "Decimal truncado a 2 casas (REQ-019)" }
+        tipoPagamento: { type: string, enum: [MENSAL, DECIMO_TERCEIRO] }
+        status: { type: string, description: "G/P/D/E — semântica a confirmar (R-10)" }
+
+    EventoAuditoria:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        tipoEvento: { type: string }
+        entidade: { type: string }
+        entidadeId: { type: string, format: uuid }
+        usuario: { type: string }
+        timestamp: { type: string, format: date-time }

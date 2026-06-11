@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: sifap-postgres
+    environment:
+      POSTGRES_DB: sifap
+      POSTGRES_USER: sifap
+      POSTGRES_PASSWORD: sifap
+    ports:
+      - "5432:5432"
+    volumes:
+      - sifap-pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sifap -d sifap"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  sifap-pg-data:

@@ -17,152 +17,179 @@
 > 📘 **Guia passo a passo:** [`GUIDE.md`](GUIDE.md).
 
 
-> Este documento consolida todas as descobertas do Estágio 1.
-> Preencha cada seção com as conclusões do time. **Este é o input principal do Estágio 2** — sem ele, a especificação vira chute.
+> Documento de passagem para o `@architect-agent` (Estágio 2). Autocontido — não exige abrir os artefatos individuais.
 
-**Time**: [Nome do Time]
-**Data**: 19/05/2026
-**Edição**:
-**Participantes**: [Liste os membros e suas personas]
+**Time**: _[preencher nome da equipe]_
+**Data**: 2026-06-10
+**Status das entradas**: ✅ [inventory.md](inventory.md) · ✅ [business-rules-catalog.md](business-rules-catalog.md) · ✅ [dependency-map.md](dependency-map.md) · ✅ [mysteries-found.md](mysteries-found.md)
 
 ---
 
-## 1. Sumário Executivo
+## Resumo Executivo (máximo de 5 frases)
 
-> Em 3 a 5 frases, resuma o que o time descobriu sobre o SIFAP legado.
-> O que é este sistema? Qual sua criticidade? Qual o estado do código?
-
-[Escreva aqui]
-
----
-
-## 2. Visão Geral do Sistema
-
-### 2.1 Propósito do SIFAP
-
-[Descreva o que o sistema faz com base na análise do código]
-
-### 2.2 Arquitetura Legada
-
-[Descreva a arquitetura: quantos programas, DDMs, fluxos principais]
-
-### 2.3 Usuários e Perfis
-
-[Quem usa o sistema? Quais perfis de acesso existem?]
+1. O legado SIFAP tem **15 programas Natural (`.NSN`) e 4 DDMs Adabas** (`BENEFICIARIO`, `PROGRAMA-SOCIAL`, `PAGAMENTO`, `AUDITORIA`), dos quais foram extraídas **125 regras de negócio candidatas** ([inventory.md](inventory.md); [business-rules-catalog.md](business-rules-catalog.md)).
+2. Dessas, **~29 regras estão totalmente confirmadas** por documentação legada (RN-xxx / Manual), além de ~8 parciais; as demais são inferidas só do código ([business-rules-catalog.md](business-rules-catalog.md)).
+3. O sistema é **fortemente acoplado por dados** (todos os programas giram em torno dos 4 DDMs) e contém **duplicação perigosa de lógica** — o batch `BATCHPGT` reimplementa o cálculo de `CALCBENF` inline em vez de chamá-lo via CALLNAT ([mysteries-found.md, MYS-023](mysteries-found.md)).
+4. O maior risco para o Estágio 2 são os **9 mistérios bloqueadores (Critical)** (de **31 mistérios** catalogados no total), com destaque para fórmulas de cálculo divergentes da regra documentada (MYS-010, MYS-013) e três backdoors de segurança (MYS-017, MYS-019, MYS-021) ([mysteries-found.md](mysteries-found.md)).
+5. Confiança da equipe para a modernização: **MÉDIA** — o domínio está bem mapeado e os status/fluxos foram decifrados, mas decisões financeiras e de segurança/compliance precisam ser resolvidas com facilitador antes de escrever EARS.
 
 ---
 
-## 3. Principais Descobertas
+## O Que Sabemos (Confirmado)
 
-### 3.1 Regras de Negócio Críticas
+### Regras de Negócio (somente confirmadas)
 
-> Liste as 5 regras de negócio mais importantes encontradas.
+Extraídas de [business-rules-catalog.md](business-rules-catalog.md); somente itens classificados **"Confirmada"** (não inferidos). Agrupadas por tema.
 
-1. [Regra + referência ao catálogo BR-XXX]
-2.
-3.
-4.
-5.
+**Validação de pessoa / documentos**
 
-### 3.2 Dependências Complexas
+- CPF obrigatório e validado por dígito verificador (módulo 11, pesos 10→2 e 11→2) — _Unwanted/Ubiquitous_. [Ver business-rules-catalog.md, CADBENEF #2, #3, #4](business-rules-catalog.md); replicado em VALBENEF #1 e VALDOCS #1.
+- Data de nascimento obrigatória — _Unwanted_. [Ver business-rules-catalog.md, CADBENEF #6](business-rules-catalog.md).
+- Nome deve conter ao menos um espaço (nome + sobrenome) — _Unwanted_. [Ver business-rules-catalog.md, VALBENEF #5](business-rules-catalog.md).
+- Domínio fechado de status do beneficiário **A=ativo, S=suspenso, C=cancelado, I=inativo, D=desligado** — _Unwanted_. [Ver business-rules-catalog.md, VALBENEF #7](business-rules-catalog.md); rótulos confirmados em CONSBENF #4 e VALELEG #5.
 
-> Quais programas estão mais acoplados? Onde há risco de efeito cascata?
+**Cadastro e ciclo de vida**
 
-[Descreva]
+- Beneficiário incluído recebe status inicial `A` (ativo) — _Event-driven_. [Ver business-rules-catalog.md, CADBENEF #10](business-rules-catalog.md).
+- Programa incluído recebe status `A` (ativo) — _Event-driven_. [Ver business-rules-catalog.md, CADPROG #5](business-rules-catalog.md).
+- Inclusão de dependente exige titular existente (chave CPF) — _Unwanted_. [Ver business-rules-catalog.md, CADDEPEND #1](business-rules-catalog.md).
 
-### 3.3 Dívida Técnica Identificada
+**Elegibilidade**
 
-> Que problemas no código legado vão complicar a migração?
+- Apenas programas com status `A` são elegíveis — _Unwanted_. [Ver business-rules-catalog.md, VALELEG #3](business-rules-catalog.md).
+- Faixa etária por programa (idade mínima/máxima quando definidas) — _State-driven_. [Ver business-rules-catalog.md, VALELEG #6](business-rules-catalog.md).
+- Teto de renda por programa (`RENDA-MAX`) — _State-driven_. [Ver business-rules-catalog.md, VALELEG #7](business-rules-catalog.md).
+- Apenas beneficiários com status `A` entram no cálculo / pagamento — _Unwanted/State-driven_. [Ver business-rules-catalog.md, CALCBENF #3 e BATCHPGT #3](business-rules-catalog.md).
 
-- [ ] [Problema 1]
-- [ ] [Problema 2]
-- [ ] [Problema 3]
+**Cálculo financeiro**
 
-### 3.4 Gaps de Documentação
+- Valores monetários são **truncados** (não arredondados) para 2 casas decimais — _Ubiquitous_. [Ver business-rules-catalog.md, CALCBENF #11 e CALCCORR #6](business-rules-catalog.md).
+- Teto de desconto = **30% do valor bruto**, com desconto judicial (`J`) como exceção legal ao teto — _Ubiquitous/Event-driven/State-driven_. [Ver business-rules-catalog.md, CALCDSCT #4, #6, #12](business-rules-catalog.md).
 
-> O que a documentação existente NÃO cobre?
+**Pagamento / conciliação / auditoria**
 
-[Descreva]
+- Processamento mensal lê beneficiários **em ordem de CPF** (sistemas a jusante dependem disso) — _Ubiquitous_. [Ver business-rules-catalog.md, BATCHPGT #1](business-rules-catalog.md).
+- Conciliação CNAB: divergência quando |valor SIFAP − valor banco| > R$ 0,01; código de retorno define status **`00`→P (pago), `01`→D (devolvido), `02`→E (estornado)** — _Unwanted/Event-driven_. [Ver business-rules-catalog.md, BATCHCON #3, #4](business-rules-catalog.md).
+- Domínio de status de pagamento **G=gerado, P=pago, C=cancelado, D=devolvido, E=estornado** — _Ubiquitous_. [Ver business-rules-catalog.md, BATCHREL #3 e RELPGT #6](business-rules-catalog.md).
+- Domínio de ações de auditoria **IN, AL, CO, CN, DV** (e `EX` — ver risco) — _Ubiquitous_. [Ver business-rules-catalog.md, RELAUDIT #5](business-rules-catalog.md).
+- Registro de auditoria gravado para cada conciliação e divergência — _Event-driven_. [Ver business-rules-catalog.md, BATCHCON #5](business-rules-catalog.md).
 
----
+> **Contagem:** ~29 regras totalmente confirmadas (+ ~8 parciais). Total geral de candidatas: 125. [Ver Resumo Estatístico em business-rules-catalog.md](business-rules-catalog.md).
 
-## 4. Mistérios e Riscos
+### Dependências (arestas verificadas)
 
-### 4.1 Mistérios Não Resolvidos
+> ✅ [dependency-map.md](dependency-map.md) **foi preenchido** com arestas reais (escopo: `natural-programs/`, 15 programas + 4 DDMs, recursivo). Cada aresta cita arquivo:linha. Diagrama Mermaid em [dependency-map.mmd](dependency-map.mmd).
 
-> Resuma os mistérios do arquivo `mysteries-found.md` que permanecem sem explicação.
+**Achado central:** **nenhum `CALLNAT` nem `INCLUDE`** nos 15 programas — logo **0 arestas programa→programa**. Toda integração é **implícita via DDMs compartilhados** (acoplamento por dados). [Ver dependency-map.md, "Arestas Programa-para-Programa"](dependency-map.md).
 
-| ID  | Descrição | Risco para Migração |
-| --- | --------- | ------------------- |
-|     |           |                     |
+**Acoplamento programa → DDM (34 arestas de dados verificadas, com arquivo:linha):**
 
-### 4.2 Riscos para o Estágio 2
+- `BENEFICIARIO` — DDM mais acessado, **9 programas**: CADBENEF, CADDEPEND, CALCBENF, CALCDSCT, VALELEG, CONSBENF, RELPGT, BATCHREL, BATCHPGT. [Ver dependency-map.md](dependency-map.md).
+- `PAGAMENTO` — **8 programas**, concentra as escritas (STORE/UPDATE por CALCBENF, CALCCORR, CALCDSCT, BATCHPGT, BATCHCON). [Ver dependency-map.md](dependency-map.md).
+- `PROGRAMA-SOCIAL` — CADPROG, VALELEG, CALCBENF, BATCHPGT. [Ver dependency-map.md](dependency-map.md).
+- `AUDITORIA` — escrito por BATCHCON; lido por RELAUDIT. [Ver dependency-map.md](dependency-map.md).
 
-> O que o time de especificação precisa saber antes de começar?
+**Arestas program → program / referências quebradas:**
 
-1. [Risco 1]
-2. [Risco 2]
-3. [Risco 3]
+- `BATCHPGT` **deveria** chamar `CALCBENF`/`CALCDSCT` (CALLNAT prometido no cabeçalho), mas **reimplementa a lógica inline** — chamada esperada **ausente**. [Ver mysteries-found.md, MYS-023](mysteries-found.md).
+- **Programas órfãos:** `VALBENEF` e `VALDOCS` — sem acesso a dados e ninguém os chama (MYS-030). [Ver dependency-map.md, "Programas Órfãos"](dependency-map.md).
+- **Subprogramas ausentes:** `VALCPF`, `VALNISN`, copycode `FMTVLR` — citados na doc, não materializados (MYS-031). [Ver inventory.md, "Itens Incomuns"](inventory.md).
+- **Fonte externa:** `BATCHCON` lê arquivo CNAB 240 (`WORK FILE 1`, não-DDM). [Ver dependency-map.md](dependency-map.md).
 
----
+### Estruturas de Dados (DDMs documentados)
 
-## 5. Recomendações
+Campos-chave extraídos dos blocos `DEFINE DATA` em [business-rules-catalog.md](business-rules-catalog.md); existência dos 4 `.ddm` confirmada em [inventory.md](inventory.md).
 
-### 5.1 O que migrar primeiro
-
-> Com base na priorização do Par 1 (Product Owner), quais funcionalidades devem ser migradas primeiro?
-
-| Prioridade | Funcionalidade | Justificativa |
-| ---------- | -------------- | ------------- |
-| 1          |                |               |
-| 2          |                |               |
-| 3          |                |               |
-
-### 5.2 O que descartar
-
-> Funcionalidades que provavelmente não precisam ser migradas:
-
-- [Funcionalidade]: [Motivo para descartar]
-
-### 5.3 O que evoluir
-
-> Funcionalidades que devem ser migradas E melhoradas:
-
-- [Funcionalidade]: [Como melhorar]
+- **`BENEFICIARIO`** — CPF (N11, chave), NOME, DT-NASCIMENTO, SEXO, STATUS (A/S/C/I/D), COD-PROGRAMA, RENDA-FAMILIAR, NUM-DEPENDENTES, COD-REGIAO, NIS, UF, CEP, DOCUMENTOS-OK; grupos periódicos **`DEPENDENTES (PE)`** e **`DESCONTOS (PE)`** (TIPO-DSCT C/I/J/S/P/A).
+- **`PROGRAMA-SOCIAL`** — COD-PROGRAMA (N4, chave), NOME-PROGRAMA, TIPO (A/P/T), VLR-BASE, COD-ELEGIBILIDADE (A5 posicional), DT-INICIO/DT-FIM, STATUS-PROG, RENDA-MAX, IDADE-MIN/MAX, FATOR-REAJUSTE.
+- **`PAGAMENTO`** — NUM-PAGTO, CPF-BENEF, COMPETENCIA, VLR-BRUTO/DESCONTO/LIQUIDO, TIPO-PGTO (N/D/T), STATUS-PGTO (G/P/C/D/E), VLR-CORRECAO, COD-BANCO, COD-RETORNO.
+- **`AUDITORIA`** — SEQ-AUDIT, DT-EVENTO, USUARIO, ACAO (IN/AL/CO/CN/DV/EX), TABELA-REF, CHAVE-REF, VLR-ANTERIOR/NOVO.
 
 ---
 
-## 6. Métricas do Estágio
+## O Que Traz Risco
 
-| Métrica                       | Valor        |
-| ----------------------------- | ------------ |
-| Programas analisados          | \_\_\_ / 15  |
-| DDMs mapeados                 | \_\_\_ / 4   |
-| Regras de negócio encontradas | \_\_\_       |
-| Regras escondidas encontradas | \_\_\_ / 10  |
-| Easter eggs encontrados       | \_\_\_ / 3   |
-| Termos no glossário           | \_\_\_       |
-| Mistérios catalogados         | \_\_\_       |
-| Tempo total gasto             | \_\_\_ horas |
+### Mistérios que Bloqueiam o Estágio 2
+
+**9 mistérios `blocks-stage-2` (Critical)** — devem ser resolvidos com facilitador/domínio antes de qualquer EARS dependente. [Fonte: mysteries-found.md](mysteries-found.md).
+
+| MYS-ID | Risco | Caminho de resolução sugerido |
+| ------ | ----- | ----------------------------- |
+| **MYS-001** | Fator-K mágico `0.347215` adultera `VLR-BASE` na inclusão de programa (CADPROG) — base de todo o cálculo. | Buscar `0.347215` em CALCBENF/CALCCORR; cruzar com REGRAS-NEGOCIO-2012 §6. |
+| **MYS-010** | Cálculo de benefício **MULTIPLICATIVO de 5 fatores** diverge da RN-013 **ADITIVA** (CALCBENF). | Decisão de domínio: qual fórmula é a oficial? Validar com folha de pagamento real. |
+| **MYS-012** | Fórmula do 13º: comentário (× meses ativos/12) ≠ código (× fator idade) (CALCBENF/BATCHPGT). | Confirmar fórmula correta do 13º com facilitador. |
+| **MYS-013** | **Três cálculos de desconto divergentes** (3% fixo em CALCBENF/BATCHPGT vs progressivo 3/5/7/9% em CALCDSCT, não chamado). | Decidir a fonte da verdade; verificar se há desconto a menor. |
+| **MYS-016** | Pensão alimentícia (`P`) submetida ao teto de 30% (só `J` é exceção) — possível defeito jurídico (CALCDSCT). | Questão jurídica: pensão deve ser exceção ao teto? |
+| **MYS-017** | **Bypass de elegibilidade da região 99** — ESCAPE ROUTINE pula TODA validação (VALELEG). | Decisão de segurança: replicar com controle de acesso ou eliminar. |
+| **MYS-019** | **Backdoor de CPF de teste** — CPFs `000…` com dígitos iguais aceitos em produção (VALBENEF). | Decisão de segurança: remover backdoor. |
+| **MYS-021** | **Backdoor de prefixos especiais** {000,001,002,010,011,099,100,999} anula validação documental (VALDOCS). | Decisão de segurança: eliminar bypass. |
+| **MYS-029** | **Exclusões (`EX`) ocultadas da trilha de auditoria** (RELAUDIT) — bandeira vermelha de compliance. | Trilha modernizada DEVE exibir exclusões; verificar se `EX` é ao menos gravado. |
+
+> Demais: **12 High** (needs-investigation), **5 Medium** (needs-facilitator), **5 Low** (parked, 2 ✅ resolvidos). Total **31** mistérios. [Ver resumo em mysteries-found.md](mysteries-found.md).
+
+### Regras com Evidência Fraca
+
+Regras classificadas **"Inferida"** carregam risco se viradas em requisito sem confirmação — derivam só do código, sem suporte documental. [Fonte: business-rules-catalog.md](business-rules-catalog.md). Destaques:
+
+- **Limite de dependentes = 5 no código vs 3 na RN-004** — divergência confirmada, magic number hardcoded. [CADDEPEND #3](business-rules-catalog.md).
+- **Cálculo de idade só por diferença de anos** (ignora mês/dia) — afeta regra dos 75 anos e elegibilidade. [CADBENEF #12](business-rules-catalog.md), [VALELEG #6](business-rules-catalog.md).
+- **Tabelas de fatores (regional/renda/idade) e alíquotas** são magic numbers não documentados. [CALCBENF #5–#8](business-rules-catalog.md), [CALCDSCT #3](business-rules-catalog.md).
+- **Correção IPCA só cobre 2010–2012** — anos ausentes ficam sem correção, silenciosamente. [CALCCORR #4–#5](business-rules-catalog.md).
+- **Reimplementação inline do cálculo no batch** — dupla fonte da verdade. [BATCHPGT #6](business-rules-catalog.md).
+
+> **Risco residual de dependência:** o [dependency-map.md](dependency-map.md) confirmou **2 mistérios novos** — validadores órfãos `VALBENEF`/`VALDOCS` (MYS-030) e subprogramas ausentes `VALCPF`/`VALNISN`/`FMTVLR` (MYS-031). A validação de NIS (RN-001) não ocorre em nenhum programa materializado.
 
 ---
 
-## 7. Notas para o Próximo Estágio
+## Hipóteses de Recorte Recomendadas
 
-> Deixe aqui mensagens para o time no Estágio 2 (Especificação Moderna):
+> ⚠️ **São HIPÓTESES, não decisões.** Baseiam-se em clusters de famílias de prefixo ([inventory.md](inventory.md)) e em propriedade de dados / acoplamento por DDM verificado em [dependency-map.md](dependency-map.md). O `@architect-agent` decide no Estágio 2.
 
-[Escreva aqui]
+### Hipótese 1: Cadastro de Beneficiários — registro e validação de pessoas físicas e seus dependentes/documentos
+- **Programas:** CADBENEF, CADDEPEND, VALBENEF, VALDOCS
+- **DDM(s) próprios:** `BENEFICIARIO` (incl. grupo periódico `DEPENDENTES`)
+- **Racional:** Fronteira natural em torno do dado da pessoa e suas validações (CPF, nome, data, documentos).
+
+### Hipótese 2: Programas Sociais e Elegibilidade — definição de programas e regras de quem pode receber
+- **Programas:** CADPROG, VALELEG
+- **DDM(s) próprios:** `PROGRAMA-SOCIAL`
+- **Racional:** O programa define os parâmetros (renda, idade, tipo, COD-ELEGIBILIDADE) que VALELEG consome — coesão de regra de elegibilidade.
+
+### Hipótese 3: Cálculo de Benefícios — motor financeiro de valores, descontos e correções
+- **Programas:** CALCBENF, CALCDSCT, CALCCORR
+- **DDM(s) próprios:** escreve em `PAGAMENTO` (lê `BENEFICIARIO`, `PROGRAMA-SOCIAL`)
+- **Racional:** Concentra a lógica financeira sensível (fatores, teto de 30%, IPCA) — candidato a serviço único de cálculo que elimina a duplicação do batch.
+
+### Hipótese 4: Processamento de Pagamentos — ciclo mensal e conciliação bancária (PAGAMENTO)
+- **Programas:** BATCHPGT, BATCHCON
+- **DDM(s) próprios:** `PAGAMENTO` (ciclo de vida G→P/D/E)
+- **Racional:** Orquestração batch da folha + conciliação CNAB; deveria consumir o motor de cálculo (Hipótese 3) em vez de reimplementá-lo.
+
+### Hipótese 5: Consultas, Relatórios e Auditoria — visões somente-leitura e trilha de auditoria
+- **Programas:** CONSBENF, RELPGT, BATCHREL, RELAUDIT
+- **DDM(s) próprios:** `AUDITORIA` (leitura cruzada de `PAGAMENTO`/`BENEFICIARIO`)
+- **Racional:** Separa preocupações de leitura/relatório (mascaramento de CPF, consolidações, trilha) do caminho de escrita.
 
 ---
 
-## Definição de Pronto deste relatório
+## Artefatos-Fonte
 
-- [ ] Todas as seções acima preenchidas (sem placeholders).
-- [ ] Pelo menos 5 regras críticas listadas em §3.1, cada uma referenciando uma `BR-XXX` do catálogo.
-- [ ] Decisões de migrar/descartar/evoluir em §5 cobrem as 8+ funcionalidades principais.
-- [ ] Métricas de §6 conferem com os outros artefatos (glossary.md, business-rules-catalog.md, mysteries-found.md).
+- [inventory.md](inventory.md) — inventário do legado (estrutura, contagens, convenções de nomes).
+- [business-rules-catalog.md](business-rules-catalog.md) — 125 regras candidatas por programa, com rastreabilidade `.NSN#L`.
+- [dependency-map.md](dependency-map.md) · [dependency-map.mmd](dependency-map.mmd) — 34 arestas programa→dados verificadas; 0 CALLNAT/INCLUDE.
+- [mysteries-found.md](mysteries-found.md) — 31 mistérios consolidados (9 bloqueadores).
+- Legado: [legado-sifap/](legado-sifap/) — 15 `.NSN`, 4 `.ddm`, docs em `legacy-docs/`.
 
-— Paula
+---
+
+## Aprovação da Equipe
+
+> Preencher na conversa guiada de passagem para o Estágio 2.
+
+- **Reviewed by:** _________________________ (nomes)
+- **Date:** _______________
+- **Confidence:** ☐ high ☐ medium ☐ low
+- **Pendências antes do gate:** ☐ encaminhar os 9 bloqueadores ao facilitador · ☐ investigar órfãos/subprogramas ausentes (MYS-030, MYS-031)
 
 
 ---
